@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>前任残留度测试 | 你还放不下TA吗？</title>
+<style>
+:root{--primary:#6c5ce7;--primary-light:#a29bfe;--accent:#fd79a8;--bg:#f8f9ff;--text:#2d3436;--text-light:#636e72;--success:#00b894;--radius:20px;--shadow:0 10px 40px rgba(108,92,231,.08)}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;background:linear-gradient(135deg,#e8e4f8 0%,#fce4ec 30%,#e8e4f8 60%,#f3e5f5 100%);background-attachment:fixed;min-height:100vh;color:var(--text);line-height:1.6}
+.header{text-align:center;padding:48px 20px 32px}
+.header .icon{font-size:56px;margin-bottom:8px;animation:float 3s ease-in-out infinite}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-12px)}}
+.header h1{font-size:2.2rem;font-weight:800;background:linear-gradient(135deg,var(--primary),var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:8px}
+.header .subtitle{font-size:1.05rem;color:var(--text-light);font-weight:500}
+.header .badge{display:inline-block;margin-top:12px;padding:6px 18px;background:#fff;border-radius:50px;font-size:.85rem;color:var(--primary);font-weight:600;box-shadow:0 2px 12px rgba(108,92,231,.12)}
+.container{max-width:720px;margin:0 auto;padding:0 20px 60px}
+.progress-wrap{position:sticky;top:0;z-index:100;background:rgba(255,255,255,.85);backdrop-filter:blur(12px);padding:12px 20px;border-radius:0 0 20px 20px;box-shadow:0 4px 20px rgba(0,0,0,.04);display:flex;align-items:center;gap:12px}
+.progress-bar{flex:1;height:8px;background:#e0ddf5;border-radius:4px;overflow:hidden}
+.progress-fill{height:100%;background:linear-gradient(90deg,var(--primary),var(--accent));border-radius:4px;transition:width .4s ease;width:0}
+.progress-text{font-size:.85rem;font-weight:700;color:var(--primary);white-space:nowrap}
+.section-title{margin:28px 0 16px;padding:14px 22px;background:#fff;border-radius:var(--radius);box-shadow:var(--shadow);display:flex;align-items:center;gap:12px}
+.section-title .dim-icon{font-size:28px}
+.section-title h3{font-size:1.05rem;font-weight:700}
+.section-title .dim-desc{font-size:.8rem;color:var(--text-light)}
+.question-card{background:#fff;border-radius:var(--radius);padding:24px 28px;margin-bottom:14px;box-shadow:var(--shadow);transition:all .3s ease;border:2px solid transparent;position:relative;overflow:hidden}
+.question-card:hover{box-shadow:0 20px 60px rgba(108,92,231,.15);transform:translateY(-2px)}
+.question-card.answered{border-color:var(--primary-light);background:linear-gradient(135deg,#fff 0%,#f8f7ff 100%)}
+.question-card .q-num{display:inline-block;width:32px;height:32px;background:linear-gradient(135deg,var(--primary-light),var(--primary));color:#fff;border-radius:10px;font-size:.85rem;font-weight:700;text-align:center;line-height:32px;margin-bottom:12px}
+.question-card.answered .q-num{background:linear-gradient(135deg,var(--success),#55efc4)}
+.question-card .q-text{font-size:1.05rem;font-weight:600;margin-bottom:16px}
+.options{display:flex;gap:8px;flex-wrap:wrap}
+.option-btn{flex:1;min-width:85px;padding:10px 8px;border:2px solid #e8e4f8;border-radius:14px;background:#fafafe;cursor:pointer;font-size:.85rem;font-weight:600;color:var(--text-light);text-align:center;transition:all .25s ease;user-select:none;white-space:nowrap}
+.option-btn:hover{border-color:var(--primary-light);background:#f0edff;color:var(--primary);transform:scale(1.04)}
+.option-btn.selected{border-color:var(--primary);background:linear-gradient(135deg,#f0edff,#e8e4f8);color:var(--primary);box-shadow:0 4px 16px rgba(108,92,231,.2);transform:scale(1.04)}
+.submit-section{text-align:center;margin-top:32px;padding:28px 0}
+.submit-btn{display:inline-block;padding:16px 56px;background:linear-gradient(135deg,var(--primary),var(--accent));color:#fff;border:none;border-radius:50px;font-size:1.15rem;font-weight:700;cursor:pointer;box-shadow:0 8px 30px rgba(108,92,231,.3);transition:all .3s ease;letter-spacing:1px}
+.submit-btn:hover{transform:translateY(-3px);box-shadow:0 14px 40px rgba(108,92,231,.4)}
+.submit-btn:disabled{background:#ccc;box-shadow:none;cursor:not-allowed;transform:none}
+.submit-hint{margin-top:10px;font-size:.85rem;color:var(--text-light)}
+.result-wrap{display:none}
+.result-card{background:#fff;border-radius:var(--radius);padding:36px 28px;text-align:center;box-shadow:var(--shadow);margin-bottom:20px}
+.result-emoji{font-size:72px;animation:float 2.5s ease-in-out infinite}
+.result-grade{font-size:1.8rem;font-weight:800;margin:12px 0 8px}
+.result-score{font-size:3rem;font-weight:900;background:linear-gradient(135deg,var(--primary),var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin:12px 0}
+.result-desc{font-size:1rem;color:var(--text-light);line-height:1.8;text-align:left;padding:0 8px}
+.dim-bars{background:#fff;border-radius:var(--radius);padding:24px 28px;box-shadow:var(--shadow);margin-bottom:20px}
+.dim-bars h4{font-size:1.1rem;margin-bottom:18px;text-align:center}
+.dim-row{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+.dim-label{width:80px;font-size:.9rem;font-weight:600;text-align:right;flex-shrink:0}
+.dim-bar-wrap{flex:1;height:22px;background:#f0edff;border-radius:11px;overflow:hidden}
+.dim-bar-fill{height:100%;border-radius:11px;transition:width 1s ease}
+.c1{background:linear-gradient(90deg,#a29bfe,#6c5ce7)}
+.c2{background:linear-gradient(90deg,#fd79a8,#e84393)}
+.c3{background:linear-gradient(90deg,#fdcb6e,#f39c12)}
+.c4{background:linear-gradient(90deg,#00cec9,#00b894)}
+.dim-score{width:36px;font-size:.9rem;font-weight:700;text-align:center;flex-shrink:0}
+.share-section{text-align:center;margin:28px 0}
+.share-btn{display:inline-block;padding:12px 32px;background:#fff;border:2px solid var(--primary-light);border-radius:50px;color:var(--primary);font-weight:700;cursor:pointer;transition:all .3s ease;font-size:.95rem}
+.share-btn:hover{background:var(--primary);color:#fff}
+.retake-btn{display:inline-block;padding:12px 32px;background:transparent;border:2px solid #ccc;border-radius:50px;color:var(--text-light);font-weight:700;cursor:pointer;transition:all .3s ease;font-size:.95rem;margin-left:12px;text-decoration:none}
+.retake-btn:hover{border-color:var(--text);color:var(--text)}
+.footer{text-align:center;padding:20px;color:var(--text-light);font-size:.8rem;opacity:.6}
+@media(max-width:600px){.header h1{font-size:1.6rem}.options{flex-direction:column}.option-btn{min-width:auto}.question-card{padding:18px 16px}.dim-row{gap:8px}.dim-label{width:64px;font-size:.8rem}}
+</style>
+</head>
+<body>
+<div class="header">
+<div class="icon">💔</div>
+<h1>前任残留度测试</h1>
+<p class="subtitle">科学测量你对TA的执念程度</p>
+<span class="badge">📋 20题 · 约3分钟</span>
+</div>
+<div class="container">
+<div class="progress-wrap">
+<div class="progress-bar"><div class="progress-fill" id="pf"></div></div>
+<span class="progress-text" id="pt">0/20</span>
+</div>
+<form id="tf"></form>
+<div class="submit-section" id="ss">
+<button type="button" class="submit-btn" id="sb" disabled onclick="sr()">查看我的结果</button>
+<p class="submit-hint" id="sh">请完成全部 20 道题目后提交</p>
+</div>
+<div class="result-wrap" id="rw">
+<div class="result-card">
+<div class="result-emoji" id="re"></div>
+<div class="result-grade" id="rg"></div>
+<div class="result-score" id="rs"></div>
+<div class="result-desc" id="rd"></div>
+</div>
+<div class="dim-bars">
+<h4>📊 各维度得分</h4>
+<div id="db"></div>
+</div>
+<div class="share-section">
+<button class="share-btn" onclick="shr()">📤 分享结果</button>
+<a class="retake-btn" href="javascript:location.reload()">🔄 重新测试</a>
+</div>
+</div>
+</div>
+<div class="footer">本测试仅供娱乐参考，请理性看待感情 ❤️</div>
+<script>
+const D=[{id:"emotion",name:"情感依恋",icon:"💭",desc:"你是否还对TA念念不忘",c:"c1"},{id:"behavior",name:"行为习惯",icon:"👀",desc:"你是否还在关注TA的一切",c:"c2"},{id:"future",name:"未来期待",icon:"🔮",desc:"你是否还在幻想复合的可能",c:"c3"},{id:"impact",name:"自我影响",icon:"🪞",desc:"这段感情对你的自我影响有多深",c:"c4"}];
+const Q=[{id:1,dim:"emotion",text:"你会不自觉地想起和TA在一起的画面吗？"},{id:2,dim:"emotion",text:"听到某首歌或去到某个地方，会让你联想到TA吗？"},{id:3,dim:"emotion",text:"你是否还会因为TA的动态（朋友圈/微博等）而情绪波动？"},{id:4,dim:"emotion",text:"你是否觉得TA离开后，生活好像缺了一块？"},{id:5,dim:"emotion",text:"你是否还会梦到TA？"},{id:6,dim:"behavior",text:"你是否还会偷偷看TA的社交账号？"},{id:7,dim:"behavior",text:"你是否还保留着TA送的礼物或合照？"},{id:8,dim:"behavior",text:"你是否会向共同朋友打听TA的近况？"},{id:9,dim:"behavior",text:"你是否会在特殊日子（生日/纪念日）特别想起TA？"},{id:10,dim:"behavior",text:"你是否会下意识地拿新认识的人和TA对比？"},{id:11,dim:"future",text:"你是否幻想过和TA复合的场景？"},{id:12,dim:"future",text:"你是否觉得TA还有可能回头来找你？"},{id:13,dim:"future",text:"你是否因为TA而拒绝了新的感情机会？"},{id:14,dim:"future",text:"你是否觉得很难再遇到像TA那样的人了？"},{id:15,dim:"future",text:"你是否还在等待TA的一个道歉或解释？"},{id:16,dim:"impact",text:"分手后，你的自信心是否受到了打击？"},{id:17,dim:"impact",text:"你是否因为这段感情而改变了对爱情的信任感？"},{id:18,dim:"impact",text:"分手是否影响了你的工作或学习状态？"},{id:19,dim:"impact",text:"你是否觉得自己在这段感情中"输了"？"},{id:20,dim:"impact",text:"你是不是觉得，放下TA需要一个"正式的告别"？"}];
+const O=[{v:1,l:"完全不符合"},{v:2,l:"不太符合"},{v:3,l:"有点符合"},{v:4,l:"比较符合"},{v:5,l:"完全符合"}];
+const A={};
+let cd="";
+const tf=document.getElementById("tf");
+Q.forEach(function(q){
+if(q.dim!==cd){cd=q.dim;var d=D.find(function(dd){return dd.id===cd});var s=document.createElement("div");s.className="section-title";s.innerHTML='<span class="dim-icon">'+d.icon+'</span><div><h3>'+d.name+'</h3><span class="dim-desc">'+d.desc+'</span></div>';tf.appendChild(s)}
+var c=document.createElement("div");c.className="question-card";c.id="qc"+q.id;
+c.innerHTML='<span class="q-num">'+q.id+'</span><div class="q-text">'+q.text+'</div><div class="options" data-qid="'+q.id+'">'+O.map(function(o){return '<button type="button" class="option-btn" data-value="'+o.v+'" data-qid="'+q.id+'">'+o.l+'</button>'}).join("")+'</div>';
+tf.appendChild(c)
+});
+document.querySelectorAll(".option-btn").forEach(function(b){b.addEventListener("click",function(){var qid=this.dataset.qid;var v=parseInt(this.dataset.value);A[qid]=v;document.querySelectorAll('.option-btn[data-qid="'+qid+'"]').forEach(function(o){o.classList.remove("selected")});this.classList.add("selected");document.getElementById("qc"+qid).classList.add("answered");up()})});
+function up(){var n=Object.keys(A).length;var p=(n/20)*100;document.getElementById("pf").style.width=p+"%";document.getElementById("pt").textContent=n+"/20";var b=document.getElementById("sb");var h=document.getElementById("sh");if(n===20){b.disabled=false;h.textContent="全部完成！点击查看你的结果吧 🎉"}else{b.disabled=true;h.textContent="还剩 "+(20-n)+" 道题目未完成"}}
+function sr(){var T=Object.values(A).reduce(function(a,b){return a+b},0);var dS={};D.forEach(function(dd){dS[dd.id]=0});Q.forEach(function(q){if(A[q.id])dS[q.dim]+=A[q.id]});var g,e,d,gc;if(T<=40){g="完全释怀";e="😌";gc="#00b894";d="恭喜你！你已经基本走出了那段感情。前任在你心中的位置已经很小了，你的情绪和生活都回到了正轨。过去只是一段经历，而不是枷锁。你对未来充满期待，已经准备好迎接新的人和新的故事。保持这份从容，你值得更好的！"}else if(T<=60){g="轻微残留";e="🤔";gc="#fdcb6e";d="你已经走出来了大半，但偶尔还会被回忆轻轻戳中。一些特定的触发点——一首歌、一个地方、一张照片——仍然会让你短暂地陷入回忆。不过这些情绪并不会影响你的日常生活，你完全有能力管理它们。给自己多一点时间，彻底翻篇就在不远处。"}else if(T<=80){g="中度缠绕";e="😣";gc="#e17055";d="这段关系仍然在你心里占据重要位置。你会频繁地想起TA，关注TA的动态，甚至不自觉地拿新认识的人与其比较。你可能在理性上知道应该向前看，但情感上还没准备好真正放手。建议你有意识地减少对TA的关注，尝试新的爱好，拓展社交圈——时间会帮你，但你也要帮自己。"}else{g="深度沉溺";e="😢";gc="#d63031";d="你很深地陷在这段感情里，它仍在深刻地影响你的情绪、自我认知和日常生活。你可能还在幻想复合，或是觉得没有TA就无法真正快乐。但请记住：爱一个人不该让你失去自己。如果这种状态已经持续很久，建议你和信任的朋友聊聊，或者考虑寻求专业心理咨询的帮助。你值得被爱，也值得重新拥有完整的自己。"}
+document.getElementById("re").textContent=e;
+document.getElementById("rg").innerHTML='<span style="color:'+gc+'">'+g+"</span>";
+document.getElementById("rs").textContent=T+" 分";
+document.getElementById("rd").textContent=d;
+var db=document.getElementById("db");
+db.innerHTML=D.map(function(dd){var max=25;var pct=(dS[dd.id]/max)*100;return '<div class="dim-row"><span class="dim-label">'+dd.icon+" "+dd.name+'</span><div class="dim-bar-wrap"><div class="dim-bar-fill '+dd.c+'" style="width:'+pct+'%"></div></div><span class="dim-score">'+dS[dd.id]+"</span></div>"}).join("");
+document.getElementById("tf").style.display="none";document.getElementById("ss").style.display="none";document.getElementById("rw").style.display="block";document.querySelector(".progress-wrap").style.display="none";document.getElementById("rw").scrollIntoView({behavior:"smooth"});window._r={total:T,grade:g,dimScores:dS}}
+function shr(){var r=window._r;var t="💔 前任残留度测试：我得了 "+r.total+" 分 ——「"+r.grade+"」\n\n来看看你对前任还有多少执念？";if(navigator.share){navigator.share({title:"前任残留度测试",text:t})}else{navigator.clipboard.writeText(t).then(function(){alert("结果已复制到剪贴板！")})}}
+</script>
+</body>
+</html>
