@@ -327,7 +327,7 @@ function showResult(){
   document.getElementById("resultArea").scrollIntoView({behavior:"smooth"});
 
   setTimeout(function(){drawRadarChart(dimScores,R.color);buildDimBreakdown(dimScores,R.color);},200);
-  window._result={total:total,type:R.type,emoji:R.emoji,desc:R.desc,tagline:R.tagline};
+  window._result={total:total,type:R.type,emoji:R.emoji,desc:R.desc,tagline:R.tagline,image:R.image,color:R.color};
 }
 
 function drawRadarChart(scores,color){
@@ -522,18 +522,107 @@ function buildDimBreakdown(scores,color){
 
 function shareResult(){
   var r=window._result;
-  var tx="前任残留度测试"+" : "+r.total+"分"+" - "+r.type;
-  if(navigator.share){navigator.share({title:"前任残留度测试",text:tx});}
-  else if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(tx).then(function(){showToast("✅ 已复制");});}
+  makeShareImage(function(blob){
+    var fname=(r.type||"ex-remain")+".png";
+    try{
+      var file=new File([blob],fname,{type:"image/png"});
+      if(navigator.canShare&&navigator.share&&navigator.canShare({files:[file]})){
+        navigator.share({files:[file],title:"前任残留度测试",text:r.type+" "+r.total+"分"}).catch(function(e){if(e&&e.name!=="AbortError")showToast("⚠️ 分享未完成");});
+        return;
+      }
+    }catch(e){}
+    if(navigator.clipboard&&window.ClipboardItem&&navigator.clipboard.write){
+      try{
+        navigator.clipboard.write([new ClipboardItem({"image/png":blob})]).then(function(){showToast("✅ 图片已复制，粘贴发送给好友");},function(){saveShareImage(blob,fname);});
+        return;
+      }catch(e){}
+    }
+    saveShareImage(blob,fname);
+  },function(){showToast("⚠️ 图片生成失败，请重试");});
+}
+
+function saveShareImage(blob,fname){
+  var url=URL.createObjectURL(blob);
+  var a=document.createElement("a");
+  a.href=url;a.download=fname;
+  document.body.appendChild(a);a.click();
+  document.body.removeChild(a);
+  setTimeout(function(){URL.revokeObjectURL(url);},3000);
+  showToast("✅ 图片已保存，发送给好友即可");
+}
+
+function roundRectPath(ctx,x,y,w,h,r){
+  ctx.beginPath();
+  ctx.moveTo(x+r,y);
+  ctx.arcTo(x+w,y,x+w,y+h,r);
+  ctx.arcTo(x+w,y+h,x,y+h,r);
+  ctx.arcTo(x,y+h,x,y,r);
+  ctx.arcTo(x,y,x+w,y,r);
+  ctx.closePath();
+}
+
+function makeShareImage(okCb,errCb){
+  var r=window._result;
+  var img=new Image();
+  img.onload=function(){
+    try{
+      var W=750,H=1150;
+      var c=document.createElement("canvas");
+      c.width=W;c.height=H;
+      var ctx=c.getContext("2d");
+      var g=ctx.createLinearGradient(0,0,0,H);
+      g.addColorStop(0,"#f8f6ff");g.addColorStop(1,"#fce4ec");
+      ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
+      var cw=480,ch=640,cx=(W-cw)/2,cy=50;
+      roundRectPath(ctx,cx,cy,cw,ch,28);
+      ctx.save();ctx.clip();
+      ctx.drawImage(img,cx,cy,cw,ch);
+      ctx.restore();
+      ctx.textAlign="center";ctx.textBaseline="middle";
+      ctx.fillStyle="#2d3436";ctx.font="bold 44px -apple-system,PingFang SC,Microsoft YaHei,sans-serif";
+      ctx.fillText(r.type,W/2,cy+ch+72);
+      ctx.fillStyle=r.color||"#6c5ce7";ctx.font="bold 62px -apple-system,PingFang SC,Microsoft YaHei,sans-serif";
+      ctx.fillText(r.total+" "+"分",W/2,cy+ch+160);
+      ctx.fillStyle="#636e72";ctx.font="30px -apple-system,PingFang SC,Microsoft YaHei,sans-serif";
+      ctx.fillText(r.tagline,W/2,cy+ch+248);
+      if(c.toBlob){c.toBlob(okCb,"image/png");}
+      else{
+        var data=c.toDataURL("image/png");
+        var bin=atob(data.split(",")[1]);
+        var arr=new Uint8Array(bin.length);
+        for(var i=0;i<bin.length;i++)arr[i]=bin.charCodeAt(i);
+        okCb(new Blob([arr],{type:"image/png"}));
+      }
+    }catch(e){errCb();}
+  };
+  img.onerror=errCb;
+  if(r.image){img.src=r.image;}
+  else{errCb();}
+}
+
+function copyText(tx,successMsg){
+  function ok(){showToast(successMsg);}
+  function fallback(){
+    var ta=document.createElement("textarea");
+    ta.value=tx;
+    ta.style.position="fixed";ta.style.opacity="0";ta.style.pointerEvents="none";
+    document.body.appendChild(ta);
+    ta.focus();ta.select();
+    var ok2=false;
+    try{ok2=document.execCommand("copy");}catch(e){}
+    document.body.removeChild(ta);
+    return ok2;
+  }
+  if(navigator.clipboard&&navigator.clipboard.writeText){
+    navigator.clipboard.writeText(tx).then(ok,function(){if(fallback())ok();else showToast("⚠️ 复制失败，请手动复制");});
+  }else if(fallback()){ok();}
   else{showToast("⚠️ 复制失败，请手动复制");}
 }
 
 function copyCard(){
   var r=window._result;
   var tx="前任残留度测试"+"\n"+r.emoji+" "+r.type+" | "+r.total+"分"+"\n\n"+r.tagline+"\n"+r.desc;
-  if(navigator.clipboard&&navigator.clipboard.writeText){
-    navigator.clipboard.writeText(tx).then(function(){showToast("✅ 卡片文字已复制");});
-  }else{showToast("⚠️ 复制失败，请手动复制");}
+  copyText(tx,"✅ 卡片文字已复制");
 }
 
 function resetQuiz(){
