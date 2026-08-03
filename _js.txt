@@ -1,0 +1,363 @@
+var DIMS=__DIMS__;
+var QUESTIONS=__QUESTIONS__;
+var RESULTS=__RESULTS__;
+var ANSWERS={};
+var CURRENT_Q=0;
+var TOTAL_Q=20;
+var CORRECT_CODE="33062110";
+var CARD_LOOKUP={
+  "0_8": __CARD_0_8__,
+  "9_16": __CARD_9_16__,
+  "17_25": __CARD_17_25__,
+  "26_34": __CARD_26_34__,
+  "35_45": __CARD_35_45__,
+  "46_60": __CARD_46_60__
+};
+
+function showCodeModal(){
+  document.getElementById("codeModal").classList.add("active");
+  document.getElementById("codeError").style.display="none";
+  document.getElementById("codeInput").value="";
+  setTimeout(function(){document.getElementById("codeInput").focus()},200);
+}
+
+function verifyCode(){
+  var v=document.getElementById("codeInput").value.trim();
+  if(v===CORRECT_CODE){
+    document.getElementById("codeModal").classList.remove("active");
+    startQuiz();
+  }else{
+    document.getElementById("codeError").style.display="block";
+  }
+}
+
+function startQuiz(){
+  document.getElementById("landing").style.display="none";
+  document.getElementById("pw").classList.add("active");
+  document.getElementById("quizArea").classList.add("active");
+  document.getElementById("resultArea").classList.remove("active");
+  ANSWERS={};CURRENT_Q=0;
+  renderQuestion(0);updateProgress();
+}
+
+function getDimName(did){
+  for(var i=0;i<DIMS.length;i++){
+    if(DIMS[i].id===did)return DIMS[i].icon+" "+DIMS[i].name;
+  }
+  return "";
+}
+
+function renderQuestion(idx){
+  var q=QUESTIONS[idx];
+  var h='<div class="question-card"><span class="q-num">'+q.id+'</span>';
+  h+='<p class="q-text">'+q.text+'</p>';
+  h+='<span class="q-hint">'+getDimName(q.dim)+'</span>';
+  h+='<div class="options">';
+  for(var i=0;i<q.opts.length;i++){
+    var o=q.opts[i];
+    var sel=ANSWERS[q.id]===o.v?" selected":"";
+    h+='<button class="option-btn'+sel+'" data-value="'+o.v+'" data-qid="'+q.id+'" onclick="selectOption(this,'+q.id+','+o.v+')"><span class="opt-label">'+o.l+'</span>'+o.t+'</button>';
+  }
+  h+='</div></div>';
+  document.getElementById("quizContainer").innerHTML=h;
+  document.getElementById("navPrev").disabled=(idx===0);
+  var isLast=(idx===TOTAL_Q-1);
+  var nb=document.getElementById("navNext");
+  if(isLast){nb.textContent=__SUBMIT_BTN__;nb.className="nav-submit";nb.onclick=submitQuiz;}
+  else{nb.textContent=__NEXT_BTN__;nb.className="nav-next";nb.onclick=nextQuestion;}
+  document.getElementById("mustAnswerMsg").style.display="none";
+}
+
+function selectOption(btn,qid,val){
+  ANSWERS[qid]=val;
+  var bs=document.querySelectorAll('[data-qid="'+qid+'"]');
+  for(var i=0;i<bs.length;i++){bs[i].classList.remove("selected");}
+  btn.classList.add("selected");
+  updateProgress();
+  setTimeout(function(){
+    var isLast=(CURRENT_Q===TOTAL_Q-1);
+    if(isLast)submitQuiz();else nextQuestion();
+  },350);
+}
+
+function nextQuestion(){
+  var q=QUESTIONS[CURRENT_Q];
+  if(ANSWERS[q.id]===undefined){document.getElementById("mustAnswerMsg").style.display="block";return;}
+  CURRENT_Q++;renderQuestion(CURRENT_Q);
+  window.scrollTo({top:0,behavior:"smooth"});
+}
+
+function prevQuestion(){
+  CURRENT_Q--;renderQuestion(CURRENT_Q);
+  window.scrollTo({top:0,behavior:"smooth"});
+}
+
+function updateProgress(){
+  var n=Object.keys(ANSWERS).length;
+  document.getElementById("pf").style.width=(n/TOTAL_Q*100)+"%";
+  document.getElementById("pt").textContent=(CURRENT_Q+1)+" / "+TOTAL_Q;
+}
+
+function submitQuiz(){
+  var q=QUESTIONS[CURRENT_Q];
+  if(ANSWERS[q.id]===undefined){document.getElementById("mustAnswerMsg").style.display="block";return;}
+  showResult();
+}
+
+function getCardKey(R){
+  return R.min+"_"+R.max;
+}
+
+function showResult(){
+  var total=0;
+  for(var k in ANSWERS)total+=ANSWERS[k];
+  var dimScores={};
+  DIMS.forEach(function(d){dimScores[d.id]=0;});
+  QUESTIONS.forEach(function(q){if(ANSWERS[q.id]!==undefined)dimScores[q.dim]+=ANSWERS[q.id];});
+  var R=RESULTS.find(function(r){return total>=r.min&&total<=r.max;});
+
+  var ck=getCardKey(R);
+  var cardInner=CARD_LOOKUP[ck]||"";
+  var cardFull='<div class="type-preview">'+cardInner+'</div>';
+
+  // 1) Top card image: same card as homepage preview
+  document.getElementById("rcHeader").innerHTML=cardFull;
+
+  // 2) Bottom share card: same card as homepage preview
+  document.getElementById("shareCardVisual").innerHTML=cardFull;
+
+  // 3) Text description
+  document.getElementById("rd").textContent=R.desc;
+
+  // 4) Coping advice merged into the same module card
+  var hc=document.getElementById("hcAdvice");
+  hc.innerHTML='<div class="hc-quote">💬 '+R.tagline+'</div>';
+  if(R.advice && R.advice.length){
+    R.advice.forEach(function(a){
+      hc.innerHTML+='<h4 style="color:'+R.color+'">'+a.title+'</h4><ul>';
+      a.items.forEach(function(i){hc.innerHTML+='<li>'+i+'</li>';});
+      hc.innerHTML+='</ul>';
+    });
+  }
+
+  document.getElementById("quizArea").classList.remove("active");
+  document.getElementById("pw").classList.remove("active");
+  document.getElementById("resultArea").classList.add("active");
+  document.getElementById("resultArea").scrollIntoView({behavior:"smooth"});
+
+  setTimeout(function(){drawRadarChart(dimScores,R.color);buildDimBreakdown(dimScores,R.color);},200);
+  window._result={total:total,type:R.type,emoji:R.emoji,desc:R.desc,tagline:R.tagline};
+}
+
+function drawRadarChart(scores,color){
+  var c=document.getElementById("radarCanvas");
+  var tip=document.getElementById("radarTip");
+  var dpr=window.devicePixelRatio||1;
+  var n=DIMS.length;
+  var maxVal=12;
+  var S={ready:false,active:null,w:0,h:0,cx:0,cy:0,maxR:0,ctx:null};
+
+  function layout(){
+    var wrap=c.parentElement;
+    var w=Math.max(240,Math.min(wrap.clientWidth||380,440));
+    var h=Math.min(w*0.84,330);
+    return {w:w,h:h};
+  }
+  function setup(w,h){
+    c.width=w*dpr;c.height=h*dpr;c.style.width=w+"px";c.style.height=h+"px";
+    var ctx=c.getContext("2d");
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+    return ctx;
+  }
+  function hexToRgba(hex,a){
+    var r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);
+    return "rgba("+r+","+g+","+b+","+a+")";
+  }
+  function vertexPos(j){
+    var a=-Math.PI/2+j*2*Math.PI/n;
+    var v=(scores[DIMS[j].id]||0);
+    var rr=S.maxR*v/maxVal;
+    return {x:S.cx+rr*Math.cos(a),y:S.cy+rr*Math.sin(a)};
+  }
+  function drawGrid(ctx){
+    ctx.save();
+    var lv=[3,6,9,12];
+    for(var i=0;i<lv.length;i++){
+      var rr=S.maxR*lv[i]/maxVal;
+      ctx.beginPath();
+      for(var j=0;j<n;j++){
+        var a=-Math.PI/2+j*2*Math.PI/n;
+        var x=S.cx+rr*Math.cos(a),y=S.cy+rr*Math.sin(a);
+        if(j===0)ctx.moveTo(x,y);else ctx.lineTo(x,y);
+      }
+      ctx.closePath();
+      ctx.strokeStyle=i===lv.length-1?"#cfd4e8":"#e8eaf6";
+      ctx.lineWidth=i===lv.length-1?1.2:1;
+      ctx.stroke();
+      ctx.fillStyle="#b0b4c8";ctx.font="9px -apple-system,PingFang SC,sans-serif";
+      ctx.textAlign="center";ctx.textBaseline="middle";
+      ctx.fillText(lv[i],S.cx,S.cy-rr-8);
+    }
+    for(var j=0;j<n;j++){
+      var a=-Math.PI/2+j*2*Math.PI/n;
+      ctx.beginPath();ctx.moveTo(S.cx,S.cy);
+      ctx.lineTo(S.cx+S.maxR*Math.cos(a),S.cy+S.maxR*Math.sin(a));
+      ctx.strokeStyle="#e8eaf6";ctx.lineWidth=1;ctx.stroke();
+      var lx=S.cx+(S.maxR+28)*Math.cos(a),ly=S.cy+(S.maxR+28)*Math.sin(a);
+      ctx.fillStyle="#2d3436";ctx.font="600 11px -apple-system,PingFang SC,Microsoft YaHei,sans-serif";
+      ctx.textAlign="center";ctx.textBaseline="middle";
+      ctx.fillText(DIMS[j].icon+" "+DIMS[j].name,lx,ly);
+    }
+    ctx.beginPath();ctx.arc(S.cx,S.cy,3,0,Math.PI*2);
+    ctx.fillStyle="#cfd4e8";ctx.fill();
+    ctx.restore();
+  }
+  function drawData(ctx,t,active){
+    ctx.save();
+    ctx.beginPath();
+    for(var j=0;j<n;j++){
+      var a=-Math.PI/2+j*2*Math.PI/n;
+      var v=(scores[DIMS[j].id]||0);
+      var rr=S.maxR*v/maxVal*t;
+      var x=S.cx+rr*Math.cos(a),y=S.cy+rr*Math.sin(a);
+      if(j===0)ctx.moveTo(x,y);else ctx.lineTo(x,y);
+    }
+    ctx.closePath();
+    var grad=ctx.createLinearGradient(0,S.cy-S.maxR,0,S.cy+S.maxR);
+    grad.addColorStop(0,hexToRgba(color,0.45));
+    grad.addColorStop(1,hexToRgba(color,0.08));
+    ctx.fillStyle=grad;ctx.fill();
+    ctx.strokeStyle=color;ctx.lineWidth=2.4;
+    ctx.shadowColor=hexToRgba(color,0.55);ctx.shadowBlur=14;
+    ctx.stroke();
+    ctx.shadowBlur=0;
+    for(var j=0;j<n;j++){
+      var a=-Math.PI/2+j*2*Math.PI/n;
+      var v=(scores[DIMS[j].id]||0);
+      var rr=S.maxR*v/maxVal*t;
+      var x=S.cx+rr*Math.cos(a),y=S.cy+rr*Math.sin(a);
+      var big=(active===j);
+      ctx.beginPath();ctx.arc(x,y,big?10:6,0,Math.PI*2);
+      ctx.fillStyle="#fff";ctx.fill();
+      ctx.strokeStyle=color;ctx.lineWidth=big?3.5:3;ctx.stroke();
+      if(big){
+        ctx.beginPath();ctx.arc(x,y,16,0,Math.PI*2);
+        ctx.strokeStyle=hexToRgba(color,0.35);ctx.lineWidth=2;ctx.stroke();
+      }
+    }
+    ctx.restore();
+  }
+  function render(t,active){
+    var ctx=S.ctx;
+    ctx.clearRect(0,0,S.w,S.h);
+    drawGrid(ctx);
+    drawData(ctx,t,active);
+  }
+
+  var L=layout();
+  S.w=L.w;S.h=L.h;S.cx=L.w/2;S.cy=L.h/2+4;
+  S.maxR=Math.min(L.w,L.h)/2-50;
+  S.ctx=setup(L.w,L.h);
+  S.active=null;
+  S.ready=false;
+
+  var startT=null,duration=750;
+  function frame(ts){
+    if(startT===null)startT=ts;
+    var p=Math.min((ts-startT)/duration,1);
+    var ease=1-Math.pow(1-p,3);
+    render(ease,null);
+    if(p<1)requestAnimationFrame(frame);
+    else S.ready=true;
+  }
+  requestAnimationFrame(frame);
+
+  function hitTest(px,py){
+    for(var j=0;j<n;j++){
+      var p=vertexPos(j);
+      var dx=px-p.x,dy=py-p.y;
+      if(dx*dx+dy*dy<28*28)return j;
+    }
+    return -1;
+  }
+  function showTip(j,x,y){
+    var d=DIMS[j];
+    var v=(scores[d.id]||0);
+    tip.innerHTML=d.icon+" "+d.name+"：<b>"+v+"</b> / "+maxVal+" 分";
+    tip.style.left=(c.offsetLeft+x)+"px";
+    tip.style.top=(c.offsetTop+y)+"px";
+    tip.style.display="block";
+  }
+  function hideTip(){tip.style.display="none";}
+  function onPointer(e){
+    if(!S.ready)return;
+    var rect=c.getBoundingClientRect();
+    var x=e.clientX-rect.left,y=e.clientY-rect.top;
+    var j=hitTest(x,y);
+    if(j>=0){
+      S.active=j;
+      showTip(j,x,y);
+      c.style.cursor="pointer";
+    }else{
+      S.active=null;
+      hideTip();
+      c.style.cursor="default";
+    }
+    render(1,S.active);
+  }
+  function onLeave(){
+    hideTip();
+    S.active=null;
+    c.style.cursor="default";
+    if(S.ready)render(1,null);
+  }
+  c.onpointermove=onPointer;
+  c.onpointerdown=onPointer;
+  c.onpointerleave=onLeave;
+
+  window.onresize=function(){
+    var L2=layout();
+    if(L2.w!==S.w||L2.h!==S.h){
+      S.w=L2.w;S.h=L2.h;S.cx=L2.w/2;S.cy=L2.h/2+4;
+      S.maxR=Math.min(L2.w,L2.h)/2-50;
+      S.ctx=setup(L2.w,L2.h);
+      render(1,S.active);
+    }
+  };
+}
+
+function buildDimBreakdown(scores,color){
+  var wrap=document.getElementById("dimBreakdown");
+  var h='<h4 class="dim-title">📊 各维度得分</h4>';
+  var cols={c1:"#a29bfe",c2:"#fd79a8",c3:"#fdcb6e",c4:"#e17055",c5:"#00cec9"};
+  DIMS.forEach(function(d){
+    var v=scores[d.id];
+    var pct=Math.min(v/12*100,100);
+    var c=cols[d.c]||color;
+    h+='<div class="dim-row"><span class="dim-ic" style="background:'+c+'">'+d.icon+'</span><span class="dim-label">'+d.name+'</span><div class="dim-bar-wrap"><div class="dim-bar-fill" style="width:'+pct+'%;background:linear-gradient(90deg,'+c+'88,'+c+')"></div></div><span class="dim-score" style="color:'+c+'">'+v+' / 12</span></div>';
+  });
+  wrap.innerHTML=h;
+}
+
+function shareResult(){
+  var r=window._result;
+  var tx=__TITLE__+" : "+r.total+__SCORE__+" - "+r.type;
+  if(navigator.share){navigator.share({title:__TITLE__,text:tx});}
+  else{navigator.clipboard.writeText(tx).then(function(){alert("已复制");});}
+}
+
+function copyCard(){
+  var r=window._result;
+  var tx=__TITLE__+"\n"+r.emoji+" "+r.type+" | "+r.total+__SCORE__+"\n\n"+r.tagline+"\n"+r.desc;
+  navigator.clipboard.writeText(tx).then(function(){alert("卡片已复制");});
+}
+
+function resetQuiz(){
+  document.getElementById("landing").style.display="";
+  document.getElementById("quizArea").classList.remove("active");
+  document.getElementById("pw").classList.remove("active");
+  document.getElementById("resultArea").classList.remove("active");
+  document.getElementById("codeModal").classList.remove("active");
+  ANSWERS={};CURRENT_Q=0;
+  window.scrollTo({top:0,behavior:"smooth"});
+}
