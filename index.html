@@ -109,6 +109,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Micr
 .share-card-visual .type-preview{background:transparent;box-shadow:none;padding:0 0 8px;border-radius:0}
 .share-card-visual .type-preview:hover{transform:none;box-shadow:none}
 .share-card-visual .type-preview .tp-img{max-width:100%;border-radius:var(--radius)}
+.score-pill{display:inline-block;margin:8px auto 4px;padding:9px 26px;border-radius:50px;color:#fff;font-size:.95rem;font-weight:700;box-shadow:0 6px 18px rgba(0,0,0,.14);letter-spacing:.5px}
+.score-pill b{font-size:1.2rem;margin:0 3px}
 @media(max-width:520px){
 .toast{position:fixed;left:50%;bottom:80px;transform:translateX(-50%) translateY(20px);background:rgba(45,52,54,.95);color:#fff;font-size:.88rem;font-weight:600;padding:10px 22px;border-radius:50px;box-shadow:0 8px 24px rgba(0,0,0,.2);opacity:0;visibility:hidden;transition:all .35s ease;z-index:300;pointer-events:none;max-width:80vw;text-align:center}
 .toast.show{opacity:1;visibility:visible;transform:translateX(-50%) translateY(0)}
@@ -133,6 +135,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Micr
 .hc-advice ul li{font-size:.83rem}
 .share-inline{padding:16px 8px 20px}
 .share-card-visual{max-width:260px}
+.score-pill{font-size:.85rem;padding:8px 20px}
 .action-btn{padding:10px 16px;font-size:.85rem}
 .dim-row .dim-label{width:62px;font-size:.75rem}
 }
@@ -171,7 +174,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Micr
   <div class="share-inline" id="shareInline">
     <div class="share-label">📤 分享你的测试结果</div>
     <div class="share-card-visual" id="shareCardVisual"></div>
-    <div class="btn-row"><button class="action-btn" onclick="copyCard()">📋 复制卡片文字</button><button class="action-btn primary" onclick="shareResult()">📤 分享结果</button></div>
+    <div class="btn-row"><button class="action-btn" onclick="downloadCard()">⬇️ 下载卡片</button><button class="action-btn primary" onclick="shareResult()">📤 分享结果</button></div>
     <div class="retest-row"><button class="action-btn ghost" onclick="resetQuiz()">🔄 重新测试</button></div>
   </div>
 </div>
@@ -302,7 +305,7 @@ function showResult(){
   var cardFull='<div class="type-preview">'+cardInner+'</div>';
 
   // 1) Top card image: same card as homepage preview
-  document.getElementById("rcHeader").innerHTML=cardFull;
+  document.getElementById("rcHeader").innerHTML=cardFull+'<div class="score-pill" style="background:'+R.color+'">🏆 本次得分 <b>'+total+'</b> / 60 '+"分"+'</div>';
 
   // 2) Bottom share card: same card as homepage preview
   document.getElementById("shareCardVisual").innerHTML=cardFull;
@@ -522,18 +525,23 @@ function buildDimBreakdown(scores,color){
 
 function shareResult(){
   var r=window._result;
+  showToast("⏳ 正在生成分享图片…");
   makeShareImage(function(blob){
     var fname=(r.type||"ex-remain")+".png";
-    try{
-      var file=new File([blob],fname,{type:"image/png"});
-      if(navigator.canShare&&navigator.share&&navigator.canShare({files:[file]})){
-        navigator.share({files:[file],title:"前任残留度测试",text:r.type+" "+r.total+"分"}).catch(function(e){if(e&&e.name!=="AbortError")showToast("⚠️ 分享未完成");});
-        return;
-      }
-    }catch(e){}
+    function tryNativeShare(){
+      try{
+        var file=new File([blob],fname,{type:"image/png"});
+        if(navigator.canShare&&navigator.share&&navigator.canShare({files:[file]})){
+          navigator.share({files:[file],title:"前任残留度测试",text:r.type+" "+r.total+"分"}).catch(function(e){});
+        }
+      }catch(e){}
+    }
     if(navigator.clipboard&&window.ClipboardItem&&navigator.clipboard.write){
       try{
-        navigator.clipboard.write([new ClipboardItem({"image/png":blob})]).then(function(){showToast("✅ 图片已复制，粘贴发送给好友");},function(){saveShareImage(blob,fname);});
+        navigator.clipboard.write([new ClipboardItem({"image/png":blob})]).then(function(){
+          showToast("✅ 图片已复制，可粘贴发送给好友");
+          tryNativeShare();
+        },function(){saveShareImage(blob,fname);});
         return;
       }catch(e){}
     }
@@ -600,29 +608,12 @@ function makeShareImage(okCb,errCb){
   else{errCb();}
 }
 
-function copyText(tx,successMsg){
-  function ok(){showToast(successMsg);}
-  function fallback(){
-    var ta=document.createElement("textarea");
-    ta.value=tx;
-    ta.style.position="fixed";ta.style.opacity="0";ta.style.pointerEvents="none";
-    document.body.appendChild(ta);
-    ta.focus();ta.select();
-    var ok2=false;
-    try{ok2=document.execCommand("copy");}catch(e){}
-    document.body.removeChild(ta);
-    return ok2;
-  }
-  if(navigator.clipboard&&navigator.clipboard.writeText){
-    navigator.clipboard.writeText(tx).then(ok,function(){if(fallback())ok();else showToast("⚠️ 复制失败，请手动复制");});
-  }else if(fallback()){ok();}
-  else{showToast("⚠️ 复制失败，请手动复制");}
-}
-
-function copyCard(){
+function downloadCard(){
   var r=window._result;
-  var tx="前任残留度测试"+"\n"+r.emoji+" "+r.type+" | "+r.total+"分"+"\n\n"+r.tagline+"\n"+r.desc;
-  copyText(tx,"✅ 卡片文字已复制");
+  showToast("⏳ 正在生成卡片图片…");
+  makeShareImage(function(blob){
+    saveShareImage(blob,(r.type||"ex-remain")+".png");
+  },function(){showToast("⚠️ 图片生成失败，请重试");});
 }
 
 function resetQuiz(){

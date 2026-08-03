@@ -121,7 +121,7 @@ function showResult(){
   var cardFull='<div class="type-preview">'+cardInner+'</div>';
 
   // 1) Top card image: same card as homepage preview
-  document.getElementById("rcHeader").innerHTML=cardFull;
+  document.getElementById("rcHeader").innerHTML=cardFull+'<div class="score-pill" style="background:'+R.color+'">🏆 本次得分 <b>'+total+'</b> / 60 '+__SCORE__+'</div>';
 
   // 2) Bottom share card: same card as homepage preview
   document.getElementById("shareCardVisual").innerHTML=cardFull;
@@ -341,18 +341,23 @@ function buildDimBreakdown(scores,color){
 
 function shareResult(){
   var r=window._result;
+  showToast("⏳ 正在生成分享图片…");
   makeShareImage(function(blob){
     var fname=(r.type||"ex-remain")+".png";
-    try{
-      var file=new File([blob],fname,{type:"image/png"});
-      if(navigator.canShare&&navigator.share&&navigator.canShare({files:[file]})){
-        navigator.share({files:[file],title:__TITLE__,text:r.type+" "+r.total+__SCORE__}).catch(function(e){if(e&&e.name!=="AbortError")showToast("⚠️ 分享未完成");});
-        return;
-      }
-    }catch(e){}
+    function tryNativeShare(){
+      try{
+        var file=new File([blob],fname,{type:"image/png"});
+        if(navigator.canShare&&navigator.share&&navigator.canShare({files:[file]})){
+          navigator.share({files:[file],title:__TITLE__,text:r.type+" "+r.total+__SCORE__}).catch(function(e){});
+        }
+      }catch(e){}
+    }
     if(navigator.clipboard&&window.ClipboardItem&&navigator.clipboard.write){
       try{
-        navigator.clipboard.write([new ClipboardItem({"image/png":blob})]).then(function(){showToast("✅ 图片已复制，粘贴发送给好友");},function(){saveShareImage(blob,fname);});
+        navigator.clipboard.write([new ClipboardItem({"image/png":blob})]).then(function(){
+          showToast("✅ 图片已复制，可粘贴发送给好友");
+          tryNativeShare();
+        },function(){saveShareImage(blob,fname);});
         return;
       }catch(e){}
     }
@@ -419,29 +424,12 @@ function makeShareImage(okCb,errCb){
   else{errCb();}
 }
 
-function copyText(tx,successMsg){
-  function ok(){showToast(successMsg);}
-  function fallback(){
-    var ta=document.createElement("textarea");
-    ta.value=tx;
-    ta.style.position="fixed";ta.style.opacity="0";ta.style.pointerEvents="none";
-    document.body.appendChild(ta);
-    ta.focus();ta.select();
-    var ok2=false;
-    try{ok2=document.execCommand("copy");}catch(e){}
-    document.body.removeChild(ta);
-    return ok2;
-  }
-  if(navigator.clipboard&&navigator.clipboard.writeText){
-    navigator.clipboard.writeText(tx).then(ok,function(){if(fallback())ok();else showToast("⚠️ 复制失败，请手动复制");});
-  }else if(fallback()){ok();}
-  else{showToast("⚠️ 复制失败，请手动复制");}
-}
-
-function copyCard(){
+function downloadCard(){
   var r=window._result;
-  var tx=__TITLE__+"\n"+r.emoji+" "+r.type+" | "+r.total+__SCORE__+"\n\n"+r.tagline+"\n"+r.desc;
-  copyText(tx,"✅ 卡片文字已复制");
+  showToast("⏳ 正在生成卡片图片…");
+  makeShareImage(function(blob){
+    saveShareImage(blob,(r.type||"ex-remain")+".png");
+  },function(){showToast("⚠️ 图片生成失败，请重试");});
 }
 
 function resetQuiz(){
