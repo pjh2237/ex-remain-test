@@ -343,13 +343,16 @@ function shareResult(){
   var r=window._result;
   var tx=__TITLE__+" : "+r.total+__SCORE__+" - "+r.type;
   if(navigator.share){navigator.share({title:__TITLE__,text:tx});}
-  else{navigator.clipboard.writeText(tx).then(function(){alert("已复制");});}
+  else if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(tx).then(function(){showToast("✅ 已复制");});}
+  else{showToast("⚠️ 复制失败，请手动复制");}
 }
 
 function copyCard(){
   var r=window._result;
   var tx=__TITLE__+"\n"+r.emoji+" "+r.type+" | "+r.total+__SCORE__+"\n\n"+r.tagline+"\n"+r.desc;
-  navigator.clipboard.writeText(tx).then(function(){alert("卡片已复制");});
+  if(navigator.clipboard&&navigator.clipboard.writeText){
+    navigator.clipboard.writeText(tx).then(function(){showToast("✅ 卡片文字已复制");});
+  }else{showToast("⚠️ 复制失败，请手动复制");}
 }
 
 function resetQuiz(){
@@ -360,4 +363,13 @@ function resetQuiz(){
   document.getElementById("codeModal").classList.remove("active");
   ANSWERS={};CURRENT_Q=0;
   window.scrollTo({top:0,behavior:"smooth"});
+}
+
+var _toastTimer=null;
+function showToast(msg){
+  var t=document.getElementById("toast");
+  t.textContent=msg;
+  t.classList.add("show");
+  if(_toastTimer)clearTimeout(_toastTimer);
+  _toastTimer=setTimeout(function(){t.classList.remove("show");},2000);
 }

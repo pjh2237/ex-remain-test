@@ -114,6 +114,8 @@ html += '</div>\n'
 
 html += '</div>\n'  # close container
 
+html += '<div class="toast" id="toast"></div>\n'
+
 html += '<script>\n' + js_template + '\n</script>\n</body>\n</html>'
 
 with open(os.path.join(d, "index.html"), "wb") as f:
