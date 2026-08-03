@@ -525,38 +525,45 @@ function buildDimBreakdown(scores,color){
 
 function shareResult(){
   var r=window._result;
+  if(!r){showToast("⚠️ 请先完成测试");return;}
+  var done=false;
+  function finish(msg){if(!done){done=true;showToast(msg);}}
   showToast("⏳ 正在生成分享图片…");
-  makeShareImage(function(blob){
-    var fname=(r.type||"ex-remain")+".png";
-    function tryNativeShare(){
-      try{
-        var file=new File([blob],fname,{type:"image/png"});
-        if(navigator.canShare&&navigator.share&&navigator.canShare({files:[file]})){
-          navigator.share({files:[file],title:"前任残留度测试",text:r.type+" "+r.total+"分"}).catch(function(e){});
-        }
-      }catch(e){}
-    }
-    if(navigator.clipboard&&window.ClipboardItem&&navigator.clipboard.write){
-      try{
-        navigator.clipboard.write([new ClipboardItem({"image/png":blob})]).then(function(){
-          showToast("✅ 图片已复制，可粘贴发送给好友");
-          tryNativeShare();
-        },function(){saveShareImage(blob,fname);});
-        return;
-      }catch(e){}
-    }
-    saveShareImage(blob,fname);
-  },function(){showToast("⚠️ 图片生成失败，请重试");});
+  setTimeout(function(){finish("⚠️ 图片生成失败，请重试");},5000);
+  try{
+    makeShareImage(function(blob){
+      var fname=(r.type||"ex-remain")+".png";
+      function tryNativeShare(){
+        try{
+          var file=new File([blob],fname,{type:"image/png"});
+          if(navigator.canShare&&navigator.share&&navigator.canShare({files:[file]})){
+            navigator.share({files:[file],title:"前任残留度测试",text:r.type+" "+r.total+"分"}).catch(function(e){});
+          }
+        }catch(e){}
+      }
+      if(navigator.clipboard&&window.ClipboardItem&&navigator.clipboard.write){
+        try{
+          navigator.clipboard.write([new ClipboardItem({"image/png":blob})]).then(function(){
+            finish("✅ 图片已复制，可粘贴发送给好友");
+            tryNativeShare();
+          },function(){finish("✅ 图片已保存，发送给好友即可");saveShareImage(blob,fname,true);});
+          return;
+        }catch(e){}
+      }
+      finish("✅ 图片已保存，发送给好友即可");
+      saveShareImage(blob,fname,true);
+    },function(){finish("⚠️ 图片生成失败，请重试");});
+  }catch(e){finish("⚠️ 分享失败，请重试");}
 }
 
-function saveShareImage(blob,fname){
+function saveShareImage(blob,fname,silent){
   var url=URL.createObjectURL(blob);
   var a=document.createElement("a");
   a.href=url;a.download=fname;
   document.body.appendChild(a);a.click();
   document.body.removeChild(a);
   setTimeout(function(){URL.revokeObjectURL(url);},3000);
-  showToast("✅ 图片已保存，发送给好友即可");
+  if(!silent)showToast("✅ 图片已保存，发送给好友即可");
 }
 
 function roundRectPath(ctx,x,y,w,h,r){
