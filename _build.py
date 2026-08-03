@@ -17,7 +17,7 @@ PH = {
     "__RESULTS__": json.dumps(results, ensure_ascii=False),
     "__TITLE__": json.dumps("前任残留度测试", ensure_ascii=False),
     "__SCORE__": json.dumps("分", ensure_ascii=False),
-    "__SITE_TAG__": json.dumps("🧩 前任残留度测试 · pjh2237.github.io/ex-remain-test", ensure_ascii=False),
+    "__SITE_TAG__": json.dumps("💔 前任残留度测试 · pjh2237.github.io/ex-remain-test", ensure_ascii=False),
     "__SUBMIT_BTN__": json.dumps("✅ 提交查看结果", ensure_ascii=False),
     "__NEXT_BTN__": json.dumps("下一题 →", ensure_ascii=False),
 }
@@ -66,7 +66,7 @@ html = '<!DOCTYPE html>\n<html lang="zh-CN">\n<head>\n<meta charset="UTF-8">\n<m
 html += '<style>\n' + css + '\n</style>\n</head>\n<body>\n'
 
 # Header
-html += '<div class="header"><div class="icon">🧩</div><h1>前任残留度测试</h1><p class="subtitle">20道情景行为题 · 5维深度评估</p><div class="badge">🔬 基于情感心理学设计</div></div>\n'
+html += '<div class="header"><div class="icon">💔</div><h1>前任残留度测试</h1><p class="subtitle">20道情景行为题 · 5维深度评估</p><div class="badge">🔬 基于情感心理学设计</div></div>\n'
 
 html += '<div class="container">\n'
 
