@@ -112,8 +112,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Micr
 .score-pill{display:inline-block;margin:8px auto 4px;padding:9px 26px;border-radius:50px;color:#fff;font-size:.95rem;font-weight:700;box-shadow:0 6px 18px rgba(0,0,0,.14);letter-spacing:.5px}
 .score-pill b{font-size:1.2rem;margin:0 3px}
 @media(max-width:520px){
-.toast{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) scale(.9);background:rgba(45,52,54,.95);color:#fff;font-size:1rem;font-weight:600;padding:16px 32px;border-radius:16px;box-shadow:0 12px 40px rgba(0,0,0,.28);opacity:0;visibility:hidden;transition:all .3s ease;z-index:400;pointer-events:none;max-width:82vw;text-align:center;line-height:1.5}
-.toast.show{opacity:1;visibility:visible;transform:translate(-50%,-50%) scale(1)}
 .header h1{font-size:1.5rem}
 .question-card{padding:20px 16px}
 .option-btn{font-size:.85rem;padding:12px 14px}
@@ -180,7 +178,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Micr
 </div>
 </div>
 </div>
-<div class="toast" id="toast"></div>
 <script>
 var DIMS=[{"id": "emotion", "name": "情感依恋", "icon": "💞", "desc": "你对TA是否还念念不忘", "c": "c1"}, {"id": "behavior", "name": "行为习惯", "icon": "🔄", "desc": "你是否还受过去习惯的支配", "c": "c2"}, {"id": "future", "name": "未来期待", "icon": "🔮", "desc": "你是否还在幻想复合的可能", "c": "c3"}, {"id": "impact", "name": "自我影响", "icon": "🫪", "desc": "这段感情对你的自我影响有多深", "c": "c4"}, {"id": "projection", "name": "新关系投射", "icon": "👥", "desc": "前任的影子是否投射到新关系中", "c": "c5"}];
 var QUESTIONS=[{"id": 1, "dim": "emotion", "text": "深夜独处时，你翻看前任社交动态的情况是：", "opts": [{"v": 0, "l": "A", "t": "从没看过，一点兴趣也没有"}, {"v": 1, "l": "B", "t": "偶尔刷到会点进去看一眼"}, {"v": 2, "l": "C", "t": "会主动去搜，看完强迫自己关掉"}, {"v": 3, "l": "D", "t": "每天都忍不住刷很多次，像打卡一样"}]}, {"id": 2, "dim": "emotion", "text": "朋友随口说起前任的近况，你下意识会：", "opts": [{"v": 0, "l": "A", "t": "很平静，当作普通八卦听"}, {"v": 1, "l": "B", "t": "有点感慨，但很快能转移话题"}, {"v": 2, "l": "C", "t": "心跳加快，假装不在意却很想追问"}, {"v": 3, "l": "D", "t": "情绪瞬间失控，要么极度兴奋要么突然低落"}]}, {"id": 3, "dim": "emotion", "text": "对于前任送的礼物或遗留物品，你是怎么处理的？", "opts": [{"v": 0, "l": "A", "t": "全扔了或寄回去了，留着没意义"}, {"v": 1, "l": "B", "t": "收在箱底，眼不见心不烦"}, {"v": 2, "l": "C", "t": "就摆在看得见的地方，不想刻意收起"}, {"v": 3, "l": "D", "t": "还在日常使用，有的甚至抱着睡"}]}, {"id": 4, "dim": "emotion", "text": "偶然听到那首你们的歌，你会：", "opts": [{"v": 0, "l": "A", "t": "完全没感觉，甚至忘了那是你们的歌"}, {"v": 1, "l": "B", "t": "恍神一下，但马上就能切歌或继续忙"}, {"v": 2, "l": "C", "t": "不自觉单曲循环，陷进回忆里出不来"}, {"v": 3, "l": "D", "t": "故意分享到社交平台，抱着期待对方看到的念头"}]}, {"id": 5, "dim": "behavior", "text": "路过以前常一起去的餐厅，你的第一反应是：", "opts": [{"v": 0, "l": "A", "t": "正常经过，那只是一家餐厅"}, {"v": 1, "l": "B", "t": "心里想起以前，但脚步不会停"}, {"v": 2, "l": "C", "t": "会刻意绕路，不想触景生情"}, {"v": 3, "l": "D", "t": "会走进去坐下，甚至下意识点两人份的菜"}]}, {"id": 6, "dim": "behavior", "text": "点单或购物时，会不会顺手买前任爱吃的口味？", "opts": [{"v": 0, "l": "A", "t": "完全不会，我只买自己现在喜欢的"}, {"v": 1, "l": "B", "t": "脑中闪过念头，但最终还是会换掉"}, {"v": 2, "l": "C", "t": "经常顺手就买了，付完钱才反应过来"}, {"v": 3, "l": "D", "t": "习惯性做两人份，好像对方还在身边"}]}, {"id": 7, "dim": "behavior", "text": "有没有一些纯粹因前任才养成的习惯，至今改不掉？", "opts": [{"v": 0, "l": "A", "t": "没有，分手后很快就消失了"}, {"v": 1, "l": "B", "t": "有一两个留下了，但纯粹是自己觉得舒服"}, {"v": 2, "l": "C", "t": "很多生活节奏都是因为TA形成的，很难改"}, {"v": 3, "l": "D", "t": "刻意保持这些习惯不变，好像这样关系就没断"}]}, {"id": 8, "dim": "behavior", "text": "每天早上醒来或睡前，会不会下意识摸向身边的位置？", "opts": [{"v": 0, "l": "A", "t": "从来没有过"}, {"v": 1, "l": "B", "t": "刚分手时有，现在早就没了"}, {"v": 2, "l": "C", "t": "偶尔还会，摸空后会愃一下"}, {"v": 3, "l": "D", "t": "每次睡醒都下意识去摸，失落感很重"}]}, {"id": 9, "dim": "future", "text": "你做人生规划时，会不会把可能复合考虑进去？", "opts": [{"v": 0, "l": "A", "t": "完全不会，我的规划只围绕自己"}, {"v": 1, "l": "B", "t": "偶尔闪过念头，但不会左右决定"}, {"v": 2, "l": "C", "t": "刻意留在对方所在的城市或行业，保留见面可能"}, {"v": 3, "l": "D", "t": "为等对方回头，放弃过更好的发展机会"}]}, {"id": 10, "dim": "future", "text": "设想下一任伴侣时，你脑海里的模糊形象更接近：", "opts": [{"v": 0, "l": "A", "t": "一个全新的、和前任很不同的人"}, {"v": 1, "l": "B", "t": "偶尔会想这一点别像前任那样"}, {"v": 2, "l": "C", "t": "希望找到拥有和前任同样核心优点的人"}, {"v": 3, "l": "D", "t": "基本就是照着前任的模子在找，筛选时尤其明显"}]}, {"id": 11, "dim": "future", "text": "如果前任现在突然回头求复合，你内心的真实倾向是：", "opts": [{"v": 0, "l": "A", "t": "毫不犹豫拒绝，毫无可能"}, {"v": 1, "l": "B", "t": "会心软一瞬，但理性上还是会拒绝"}, {"v": 2, "l": "C", "t": "很可能心软答应，只要对方够诚恳"}, {"v": 3, "l": "D", "t": "不问缘由立刻答应，你等的就是这一天"}]}, {"id": 12, "dim": "future", "text": "你是否觉得这辈子可能再也遇不到像TA那样的人了？", "opts": [{"v": 0, "l": "A", "t": "从不这么想，未来会有更好的人"}, {"v": 1, "l": "B", "t": "偶尔会闪过这个念头，但知道不理性"}, {"v": 2, "l": "C", "t": "经常这样觉得，对未来的感情很悲观"}, {"v": 3, "l": "D", "t": "深以为然，这个念头让你对新的感情提不起兴趣"}]}, {"id": 13, "dim": "impact", "text": "分手后，你对自己是否值得被爱的看法改变了吗？", "opts": [{"v": 0, "l": "A", "t": "没变，我依然值得被好好爱"}, {"v": 1, "l": "B", "t": "情绪低潮时会短暂怀疑自己"}, {"v": 2, "l": "C", "t": "经常觉得是自己不够好才导致分手，自卑感很强"}, {"v": 3, "l": "D", "t": "彻底否定自己，觉得不会再有人真心喜欢我了"}]}, {"id": 14, "dim": "impact", "text": "你会不会不自觉地模仿前任的说话方式或小动作？", "opts": [{"v": 0, "l": "A", "t": "完全没有，我就是我"}, {"v": 1, "l": "B", "t": "朋友提过有点像，但我觉得还好"}, {"v": 2, "l": "C", "t": "很明显，已经把TA的一部分内化成自己了"}, {"v": 3, "l": "D", "t": "像活成了对方的翻版，用这种方式把TA留在生命里"}]}, {"id": 15, "dim": "impact", "text": "有没有因为前任的一句批评，而彻底改变了自己某个特质？", "opts": [{"v": 0, "l": "A", "t": "没有，我坚持自己认为对的部分"}, {"v": 1, "l": "B", "t": "理性判断后，确实不好的就改，为了自己"}, {"v": 2, "l": "C", "t": "拼命改，想变成TA当初想要的样子，即使TA看不见了"}, {"v": 3, "l": "D", "t": "整个人性情喜好都重塑了，却更迷茫，不知道自己是谁"}]}, {"id": 16, "dim": "impact", "text": "分手带给你的残缺感有多强？", "opts": [{"v": 0, "l": "A", "t": "没有残缺感，我是完整的"}, {"v": 1, "l": "B", "t": "像得了一场感冒，偶尔空虚但知道会好"}, {"v": 2, "l": "C", "t": "总觉得心里缺了一块，快乐总是不完整的"}, {"v": 3, "l": "D", "t": "像被抽空了，只剩一副壳在勉强生活"}]}, {"id": 17, "dim": "projection", "text": "和新对象有亲密接触时，脑海里会不会冒出前任的影子？", "opts": [{"v": 0, "l": "A", "t": "完全专注当下，只感受对方"}, {"v": 1, "l": "B", "t": "极偶尔闪过比较的念头，但不影响"}, {"v": 2, "l": "C", "t": "前任的画面或感觉会不受控制地出现，让我分神"}, {"v": 3, "l": "D", "t": "因为老被前任幽灵打断，我无法与新对象建立亲密感"}]}, {"id": 18, "dim": "projection", "text": "你会不会下意识要求约会对象做出和前任类似的举动？", "opts": [{"v": 0, "l": "A", "t": "从不，每个人都是独立的个体"}, {"v": 1, "l": "B", "t": "开玩笑时无意中提过类似的期望"}, {"v": 2, "l": "C", "t": "明确希望对方用同款香水或做同样的小事"}, {"v": 3, "l": "D", "t": "频繁试图在新人身上复刻和前任的恋爱体验"}]}, {"id": 19, "dim": "projection", "text": "当约会对象暴露的缺点恰好前任也有，你的反应是：", "opts": [{"v": 0, "l": "A", "t": "就事论事，不会把对前任的情绪带进来"}, {"v": 1, "l": "B", "t": "心里咔噇一下，但能理性沟通"}, {"v": 2, "l": "C", "t": "瞬间下头，产生强烈的排斥和不信任"}, {"v": 3, "l": "D", "t": "立刻想逃离或结束关系，觉得创伤阴影被触发"}]}, {"id": 20, "dim": "projection", "text": "认识新异性时，你发现自己会不会偷偷和前任做对比？", "opts": [{"v": 0, "l": "A", "t": "不做比较，每个人各有各的好"}, {"v": 1, "l": "B", "t": "偶尔下意识比较，但不影响判断"}, {"v": 2, "l": "C", "t": "经常在心里列清单，比来比去"}, {"v": 3, "l": "D", "t": "拿前任当标尺衡量每一个新人，导致没法深入接触"}]}];
@@ -524,11 +521,11 @@ function buildDimBreakdown(scores,color){
 }
 
 function shareResult(){
+  try{showToast("⏳ 正在生成分享图片…");}catch(e){}
   var r=window._result;
   if(!r){showToast("⚠️ 请先完成测试");return;}
   var done=false;
   function finish(msg){if(!done){done=true;showToast(msg);}}
-  showToast("⏳ 正在生成分享图片…");
   setTimeout(function(){finish("⚠️ 图片生成失败，请重试");},5000);
   try{
     makeShareImage(function(blob){
@@ -634,12 +631,31 @@ function resetQuiz(){
 }
 
 var _toastTimer=null;
-function showToast(msg){
-  var t=document.getElementById("toast");
-  t.textContent=msg;
-  t.classList.add("show");
-  if(_toastTimer)clearTimeout(_toastTimer);
-  _toastTimer=setTimeout(function(){t.classList.remove("show");},2000);
+function showToast(msg,dur){
+  try{
+    dur=dur||2200;
+    var old=document.getElementById("codex-toast");
+    if(old&&old.parentNode)old.parentNode.removeChild(old);
+    var t=document.createElement("div");
+    t.id="codex-toast";
+    var st=t.style;
+    st.position="fixed";st.top="50%";st.left="50%";
+    st.transform="translate(-50%,-50%) scale(1)";
+    st.background="rgba(30,30,45,.94)";st.color="#fff";
+    st.fontSize="1.05rem";st.fontWeight="600";
+    st.padding="16px 30px";st.borderRadius="16px";
+    st.boxShadow="0 14px 44px rgba(0,0,0,.35)";
+    st.zIndex="99999";st.pointerEvents="none";
+    st.maxWidth="86vw";st.textAlign="center";st.lineHeight="1.5";
+    st.opacity="1";st.transition="opacity .3s ease";
+    t.textContent=msg;
+    (document.body||document.documentElement).appendChild(t);
+    clearTimeout(_toastTimer);
+    _toastTimer=setTimeout(function(){
+      st.opacity="0";
+      setTimeout(function(){if(t.parentNode)t.parentNode.removeChild(t);},320);
+    },dur);
+  }catch(e){}
 }
 
 </script>

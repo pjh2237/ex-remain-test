@@ -340,11 +340,11 @@ function buildDimBreakdown(scores,color){
 }
 
 function shareResult(){
+  try{showToast("⏳ 正在生成分享图片…");}catch(e){}
   var r=window._result;
   if(!r){showToast("⚠️ 请先完成测试");return;}
   var done=false;
   function finish(msg){if(!done){done=true;showToast(msg);}}
-  showToast("⏳ 正在生成分享图片…");
   setTimeout(function(){finish("⚠️ 图片生成失败，请重试");},5000);
   try{
     makeShareImage(function(blob){
@@ -450,10 +450,29 @@ function resetQuiz(){
 }
 
 var _toastTimer=null;
-function showToast(msg){
-  var t=document.getElementById("toast");
-  t.textContent=msg;
-  t.classList.add("show");
-  if(_toastTimer)clearTimeout(_toastTimer);
-  _toastTimer=setTimeout(function(){t.classList.remove("show");},2000);
+function showToast(msg,dur){
+  try{
+    dur=dur||2200;
+    var old=document.getElementById("codex-toast");
+    if(old&&old.parentNode)old.parentNode.removeChild(old);
+    var t=document.createElement("div");
+    t.id="codex-toast";
+    var st=t.style;
+    st.position="fixed";st.top="50%";st.left="50%";
+    st.transform="translate(-50%,-50%) scale(1)";
+    st.background="rgba(30,30,45,.94)";st.color="#fff";
+    st.fontSize="1.05rem";st.fontWeight="600";
+    st.padding="16px 30px";st.borderRadius="16px";
+    st.boxShadow="0 14px 44px rgba(0,0,0,.35)";
+    st.zIndex="99999";st.pointerEvents="none";
+    st.maxWidth="86vw";st.textAlign="center";st.lineHeight="1.5";
+    st.opacity="1";st.transition="opacity .3s ease";
+    t.textContent=msg;
+    (document.body||document.documentElement).appendChild(t);
+    clearTimeout(_toastTimer);
+    _toastTimer=setTimeout(function(){
+      st.opacity="0";
+      setTimeout(function(){if(t.parentNode)t.parentNode.removeChild(t);},320);
+    },dur);
+  }catch(e){}
 }
