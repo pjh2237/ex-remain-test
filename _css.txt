@@ -13,13 +13,13 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Micr
 .start-btn::after{content:"";position:absolute;top:-50%;left:-50%;width:200%;height:200%;background:linear-gradient(45deg,transparent,rgba(255,255,255,.15),transparent);transform:rotate(45deg);transition:all .6s}
 .start-btn:hover{transform:translateY(-3px);box-shadow:0 14px 40px rgba(108,92,231,.4)}
 .start-btn:hover::after{left:100%}
-.result-types-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:16px;margin-top:40px}
-.type-preview{background:#fff;border-radius:var(--radius);padding:0 0 20px;text-align:center;box-shadow:var(--shadow);overflow:hidden;transition:all .3s ease}
+.result-types-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;margin-top:24px}
+.type-preview{background:#fff;border-radius:16px;padding:0 0 14px;text-align:center;box-shadow:var(--shadow);overflow:hidden;transition:all .3s ease}
 .type-preview:hover{transform:translateY(-4px);box-shadow:0 16px 48px rgba(108,92,231,.15)}
 .type-preview .tp-img{width:100%;height:auto;display:block;object-fit:cover}
-.type-preview .tp-name{font-size:1rem;font-weight:700;margin:10px 0 4px;padding:0 12px}
-.type-preview .tp-range{font-size:.75rem;color:var(--text-light);margin-bottom:6px}
-.type-preview .tp-tagline{font-size:.78rem;color:var(--text-light);font-style:italic;line-height:1.4;padding:0 12px}
+.type-preview .tp-name{font-size:.88rem;font-weight:700;margin:8px 0 3px;padding:0 8px}
+.type-preview .tp-range{font-size:.68rem;color:var(--text-light);margin-bottom:4px}
+.type-preview .tp-tagline{font-size:.7rem;color:var(--text-light);font-style:italic;line-height:1.35;padding:0 8px}
 .modal-overlay{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.5);z-index:200;justify-content:center;align-items:center;animation:fadeIn .2s}
 .modal-overlay.active{display:flex}
 @keyframes fadeIn{from{opacity:0}to{opacity:1}}
@@ -106,7 +106,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Micr
 .header h1{font-size:1.5rem}
 .question-card{padding:20px 16px}
 .option-btn{font-size:.85rem;padding:12px 14px}
-.result-types-grid{grid-template-columns:1fr 1fr}
+.result-types-grid{grid-template-columns:1fr 1fr;gap:10px;margin-top:18px}
+.type-preview{padding:0 0 12px;border-radius:14px}
+.type-preview .tp-name{font-size:.8rem;margin:6px 0 2px;padding:0 6px}
+.type-preview .tp-range{font-size:.62rem;margin-bottom:3px}
+.type-preview .tp-tagline{font-size:.64rem;padding:0 6px}
 .rc-header{padding:12px 12px 0}
 .rc-header .type-preview{max-width:280px}
 .rc-header .tp-name{font-size:.88rem}
